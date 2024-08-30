@@ -4,6 +4,7 @@ import "./globals.css";
 import Providers from "./providers";
 import { cn } from "@/lib/utils";
 import { Toaster } from "sonner";
+import Navbar from "@/components/Navbar";
 
 const font = Inter({ subsets: ["latin"] });
 
@@ -27,7 +28,7 @@ export default function RootLayout({
           )}
         >
           <Toaster richColors theme="light" />
-          {/* <Navbar /> */}
+          <Navbar />
           {children}
         </body>
       </html>

@@ -3,43 +3,33 @@ import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from 'next/navigation';
 
 const AuthCallbackPage = async () => {
-    try {
-        // Fetch the current user from Clerk
-        const user = await currentUser();
 
-        // Check if the user has necessary information
-        if (!user?.id || !user.primaryEmailAddress?.emailAddress) {
-            return redirect("/sign-in");
-        }
+    const user = await currentUser();
+    
+    if (!user?.id || !user?.primaryEmailAddress?.emailAddress) {
+        return redirect("/sign-in");
+    }
 
-        // Find the user in the database by Clerk ID
-        const dbUser = await db.user.findFirst({
-            where: {
+    const dbUser = await db.user.findFirst({
+        where: {
+            clerkId: user.id,
+        },
+    });
+
+    if (!dbUser) {
+        await db.user.create({
+            data: {
+                id: user.id,
                 clerkId: user.id,
-            },
+                email: user.primaryEmailAddress.emailAddress,
+                firstName: user.firstName,
+                lastName: user.lastName,
+            }
         });
-
-        if (!dbUser) {
-            // Create a new user in the database
-            await db.user.create({
-                data: {
-                    clerkId: user.id,
-                    email: user.primaryEmailAddress.emailAddress,
-                    firstName: user.firstName || "", // Provide a default empty string
-                    lastName: user.lastName || "",   // Provide a default empty string
-                },
-            });
-
-            // Redirect to the dashboard after creating a new user
-            return redirect("/dashboard");
-        } else {
-            // Redirect to the home page if user exists
-            return redirect("/");
-        }
-    } catch (error) {
-        // Handle errors (e.g., log them and/or redirect to an error page)
-        console.error("Authentication callback error:", error);
-        return redirect("/error"); // Redirect to an error page or handle it as needed
+            //path to redirect user after sign-in
+        return redirect("/dashboard");
+    } else {
+        return redirect("/");
     }
 };
 
